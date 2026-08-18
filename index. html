@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PLAYDATE - Kids</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:system-ui}
+body{background:#FFF7CC;color:#222;min-height:100vh}
+header{background:white;border-bottom:4px solid #222;padding:14px 20px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.logo{font-weight:900;font-size:24px}.logo span{color:#FF6B00}
+#pfp{width:52px;height:52px;border-radius:50%;border:3px solid #222;background:#eee}
+input{padding:12px;border:3px solid #222;border-radius:999px;font-weight:800;outline:none}
+.btn{background:#222;color:white;border:none;padding:12px 18px;border-radius:999px;font-weight:900;cursor:pointer}
+.filters{display:flex;gap:10px;padding:14px 20px;overflow:auto}
+.chip{padding:10px 16px;border-radius:999px;background:white;border:3px solid #222;font-weight:800;white-space:nowrap;cursor:pointer}
+.chip.active{background:#222;color:white}
+.main{max-width:900px;margin:0 auto;padding:16px 20px 80px}
+.card{background:white;border:3px solid #222;border-radius:22px;padding:16px;margin-bottom:12px;box-shadow:4px 4px 0 #222}
+.badge{font-size:11px;font-weight:900;padding:5px 10px;border-radius:999px;border:2px solid #222}
+.roblox{background:#FF003C;color:white}.fortnite{background:#FFCC00}.minecraft{background:#3DDC84}.fallguys{background:#FF8AE2}.rocket{background:#00D1FF}
+.join{width:100%;padding:12px;border-radius:14px;background:#A3FF12;border:3px solid #222;font-weight:900;margin-top:10px;cursor:pointer}
+.join.joined{background:#222;color:white}
+</style>
+</head>
+<body>
+<header>
+<div class="logo">PLAY<span>DATE</span> KIDS 🎮</div>
+<img id="pfp" src="https://tr.rbxcdn.com/30DAY-AvatarHeadshot-.../150/150/AvatarHeadshot/Png/noFilter" onerror="this.src='https://www.roblox.com/headshot-thumbnail/image?userId=1&width=150&height=150&format=png'">
+<input id="usernameInput" placeholder="Roblox username" style="flex:1;min-width:140px">
+<input id="codeInput" placeholder="Code" maxlength="4" style="width:90px;text-align:center;background:#A3FF12">
+<button class="btn" onclick="loadAvatar()">OK</button>
+<button class="btn" style="background:white;color:#222;border:3px solid #222" onclick="setNewCode()">Set Code</button>
+</header>
+
+<div class="filters">
+<div class="chip active" data-game="all">All</div>
+<div class="chip" data-game="roblox">ROBLOX</div>
+<div class="chip" data-game="fortnite">FORTNITE</div>
+<div class="chip" data-game="minecraft">MINECRAFT</div>
+<div class="chip" data-game="fallguys">FALL GUYS</div>
+<div class="chip" data-game="rocket">ROCKET LEAGUE</div>
+</div>
+
+<div class="main">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+<h2 id="count">Playdates</h2><button class="btn" onclick="openModal()">+ New</button>
+</div>
+<div id="cards"></div>
+<p style="text-align:center;color:#888;margin-top:30px;font-size:11px">No chat • Roblox ava = pfp • 5 months+ only • Code to join</p>
+</div>
+
+<div id="modal" style="position:fixed;inset:0;background:rgba(0,0,0,0.6);display:none;place-items:center;padding:20px;z-index:20">
+<div style="background:white;border:4px solid #222;border-radius:24px;padding:20px;width:100%;max-width:380px;display:flex;flex-direction:column;gap:10px">
+<h3>New Playdate</h3>
+<input id="titleInput" placeholder="e.g. Astroblox Obby Grind">
+<select id="gameInput" style="padding:12px;border:3px solid #222;border-radius:12px">
+<option value="roblox">Roblox</option><option value="fortnite">Fortnite</option>
+<option value="minecraft">Minecraft</option><option value="fallguys">Fall Guys</option>
+<option value="rocket">Rocket League</option>
+</select>
+<input id="dateInput" type="datetime-local" style="padding:12px;border:3px solid #222;border-radius:12px">
+<input id="maxInput" type="number" value="4" min="2" max="8" style="padding:12px;border:3px solid #222;border-radius:12px">
+<div style="display:flex;gap:10px"><button class="btn" style="flex:1;background:white;color:#222;border:3px solid #222" onclick="closeModal()">Cancel</button><button class="btn" style="flex:1" onclick="createPlaydate()">Create</button></div>
+</div>
+</div>
+
+<script>
+let username='', userId=null, familyCode=localStorage.getItem('pd_code')||'1234';
+let filter='all';
+let playdates=[
+{id:1,title:'Astroblox - No mics',game:'roblox',date:new Date(Date.now()+7200000),max:6,host:'BuilderBen',players:[{name:'BuilderBen',id:1}],hostId:1},
+{id:2,title:'Bedwars Duos',game:'roblox',date:new Date(Date.now()+18000000),max:2,host:'AstroKid',players:[{name:'AstroKid',id:1}],hostId:1}
+];
+
+document.getElementById('codeInput').value=familyCode;
+
+async function loadAvatar(){
+  username=document.getElementById('usernameInput').value.trim();
+  if(!username) return alert('Type Roblox username');
+  try{
+    const r=await fetch('https://users.roblox.com/v1/usernames/users',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({usernames:[username]})});
+    const d=await r.json(); if(!d.data[0]) throw 'not found';
+    userId=d.data[0].id;
+    const infoR=await fetch(`https://users.roblox.com/v1/users/${userId}`);
+    const info=await infoR.json();
+    const created=new Date(info.created);
+    const months=(Date.now()-created)/(1000*60*60*24*30);
+    if(months<5){ alert(`Too new! ${username} is ${Math.floor(months)} months old. Need 5 months+`); return; }
+    document.getElementById('pfp').src=`https://www.roblox.com/headshot-thumbnail/image?userId=${userId}&width=150&height=150&format=png`;
+    localStorage.setItem('pd_user',username); localStorage.setItem('pd_user_id',userId);
+    render();
+  }catch{ alert('Username not found'); }
+}
+
+function setNewCode(){
+  const n=prompt('Set friend code (4 digits):',familyCode);
+  if(n&&n.length>=3){ familyCode=n; localStorage.setItem('pd_code',n); document.getElementById('codeInput').value=n; alert('New code: '+n+' - give this to friends'); }
+}
+
+function canJoin(){
+  const codeEntered=document.getElementById('codeInput').value.trim();
+  if(!username||!userId){ alert('Set Roblox username + OK first'); return false; }
+  if(codeEntered!==familyCode){ alert('Wrong code! Ask host'); return false; }
+  return true;
+}
+
+function openModal(){ if(!canJoin()) return; document.getElementById('modal').style.display='grid'; }
+function closeModal(){ document.getElementById('modal').style.display='none'; }
+
+function createPlaydate(){
+  if(!canJoin()) return;
+  const title=document.getElementById('titleInput').value||'Playdate';
+  const game=document.getElementById('gameInput').value;
+  const dateVal=document.getElementById('dateInput').value;
+  const max=parseInt(document.getElementById('maxInput').value)||4;
+  const date=dateVal?new Date(dateVal):new Date(Date.now()+3600000);
+  playdates.unshift({id:Date.now(),title,game,date,max,host:username,hostId:userId,players:[{name:username,id:userId}]});
+  closeModal(); render();
+}
+
+function toggleJoin(id){
+  if(!canJoin()) return;
+  const pd=playdates.find(p=>p.id===id);
+  const idx=pd.players.findIndex(p=>p.id===userId);
+  if(idx>-1) pd.players.splice(idx,1);
+  else { if(pd.players.length>=pd.max) return alert('Full'); pd.players.push({name:username,id:userId}); }
+  render();
+}
+
+document.querySelectorAll('.chip').forEach(c=>c.addEventListener('click',()=>{document.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));c.classList.add('active');filter=c.dataset.game;render();}));
+
+function render(){
+  const cont=document.getElementById('cards');
+  let list=filter==='all'?playdates:playdates.filter(p=>p.game===filter);
+  document.getElementById('count').textContent=`${list.length} Playdates • Code: ${familyCode}`;
+  cont.innerHTML=list.map(p=>{
+    const joined=userId&&p.players.some(pl=>pl.id===userId);
+    return `<div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span class="badge ${p.game}">${p.game.toUpperCase()}</span>
+        <span style="font-size:12px">${p.players.length}/${p.max}</span>
+      </div>
+      <h3 style="margin:8px 0">${p.title}</h3>
+      <div style="font-size:12px;color:#666">📅 ${p.date.toLocaleString()} • by ${p.host}</div>
+      <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">${p.players.map(pl=>`<img src="https://www.roblox.com/headshot-thumbnail/image?userId=${pl.id}&width=60&height=60&format=png" title="${pl.name}" style="width:32px;height:32px;border-radius:50%;border:2px solid #222">`).join('')}<span style="font-size:12px;align-self:center">${p.players.map(pl=>pl.name).join(', ')}</span></div>
+      <button class="join ${joined?'joined':''}" onclick="toggleJoin(${p.id})">${joined?'✓ Joined':'Join'}</button>
+    </div>`;
+  }).join('');
+}
+const saved=localStorage.getItem('pd_user'); if(saved){ document.getElementById('usernameInput').value=saved; loadAvatar(); }
+render();
+</script>
+</body>
+</html>
+
