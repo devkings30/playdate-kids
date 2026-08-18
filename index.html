@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Playdate Kids</title>
+<link href="https://fonts.googleapis.com/css2?family=Indie+Flower&display=swap" rel="stylesheet">
+<style>
+:root{--peach:#F2C6A0;--pink:#E9AEB8;--lav:#C7A9C7;--blue:#9ECFE0;--mint:#A8CFC0;--cream:#FFF0E6}
+*{font-family:'Indie Flower',cursive!important}
+body{margin:0;min-height:100vh;background:linear-gradient(180deg,var(--peach) 0%,var(--pink) 25%,var(--lav) 55%,var(--blue) 75%,var(--mint) 100%);color:#3A2E35}
+.hero{padding:20px;text-align:center}
+.logo{background:var(--cream);padding:8px 16px;border-radius:99px;border:2px solid #3A2E35;display:inline-block}
+.safe{background:var(--mint);border:2.5px solid #3A2E35;border-radius:99px;padding:8px 14px;margin:10px 16px;text-align:center;font-size:18px}
+.card{background:var(--cream);border-radius:22px;padding:18px;margin:14px 16px;border:2.5px solid #3A2E35;box-shadow:0 5px 0 #3A2E35;font-size:22px;position:relative}
+.card::after{content:"🎀";position:absolute;top:-10px;right:8px}
+input{width:100%;padding:12px;border-radius:99px;border:2.5px solid #3A2E35;font-size:20px;background:#fff;box-sizing:border-box;margin-top:8px}
+.btn{width:100%;padding:12px;border-radius:99px;border:2.5px solid #3A2E35;background:#3A2E35;color:#fff;font-size:22px;margin-top:8px}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<div class="hero">
+<div class="logo">Playdate Kids ✨ Online Only 🎀</div>
+<h1 style="font-size:38px;margin:10px 0">Playdate Kids<br>Online Only</h1>
+<div class="safe">🛡️ Safe • Online Only • No Addresses 🎮</div>
+</div>
+
+<div class="card" style="background:var(--peach)">
+<div id="t" style="font-size:24px">Your name? 👋</div>
+<div id="r"><input id="n" placeholder="First name only"><button class="btn" onclick="save()">Go!</button></div>
+<div id="w" class="hidden"><b id="wt" style="font-size:24px"></b> <button class="btn" style="width:auto;padding:6px 14px" onclick="edit()">Change</button></div>
+</div>
+
+<div class="card">🧊 Roblox <br><small>🎀 4 kids online now • Join with code</small></div>
+<div class="card" style="background:var(--blue)">🌱 Minecraft <br><small>🧸 5 kids online now • Creative build</small></div>
+<div class="card" style="background:var(--mint)">🦙 Fortnite <br><small>⭐ 3 kids online now • No address needed</small></div>
+
+<div class="card" style="background:var(--lav)">
+<h3>Create Online Playdate 🎀</h3>
+<input id="pname" placeholder="Your game?">
+<select id="game" style="width:100%;padding:12px;border-radius:99px;border:2.5px solid #3A2E35;font-size:20px;margin-top:8px">
+<option>Roblox</option>
+<option>Minecraft</option>
+<option>Fortnite</option>
+</select>
+<button class="btn" onclick="add()">Create! 💻</button>
+<p style="font-size:16px">🔒 No addresses, no personal info, online only!</p>
+</div>
+
+<div id="extra"></div>
+<p style="text-align:center;font-size:24px;padding:16px">🎀 🧸 ⭐ 🍪 🐱 💌 Always play with friends you know!</p>
+
+<script>
+function save(){let v=document.getElementById('n').value.trim();if(!v)return;localStorage.setItem('pk',v);show(v)}
+function show(v){document.getElementById('t').innerText='Hi, '+v+'! 🎮';document.getElementById('r').classList.add('hidden');document.getElementById('w').classList.remove('hidden');document.getElementById('wt').innerText="Let's play, "+v+"! 🎀"}
+function edit(){document.getElementById('r').classList.remove('hidden');document.getElementById('w').classList.add('hidden')}
+function add(){let n=document.getElementById('pname').value.trim();let g=document.getElementById('game').value;if(!n)return;let d=document.createElement('div');d.className='card';d.innerHTML='🎉 '+n+'<br><small>🎮 '+g+' • Online Only • No Address</small>';document.getElementById('extra').prepend(d)}
+let s=localStorage.getItem('pk');if(s)show(s)
+</script>
+</body>
+</html>
